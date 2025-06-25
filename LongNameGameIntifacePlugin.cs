@@ -2,6 +2,11 @@
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using LongNameGameIntiface.Model;
+using LongNameGameIntiface.Utils;
+using LongNameGameIntiface.WebClient;
+using System.Linq;
+using System.Threading;
 using UnityEngine;
 
 namespace LongNameGameIntiface
@@ -24,20 +29,29 @@ namespace LongNameGameIntiface
         // Config entry key strings
         // These will appear in the config file created by BepInEx and can also be used
         // by the OnSettingsChange event to determine which setting has changed.
-        public static string FloatExampleKey = "Float Example Key";
-        public static string IntExampleKey = "Int Example Key";
-        public static string KeyboardShortcutExampleKey = "Recall Keyboard Shortcut";
+        public static string IntGropeToyFunctionKey = "Grope Sex Toy Function";
+        public static string IntGropeMultiplierKey = "Grope multiplier";
+        public static string FloatGropeDurationKey = "Grope Duration (sec)";
+        public static string KeyboardConnectIntifaceKey = "Connect Intiface";
+        public static string KeyboardStartIntifaceKey = "StartFollowingToys";
+        public static string KeyboardTestKey = "Test";
+
+        public static IntifaceClient intifaceClient = new IntifaceClient();
 
         // Configuration entries. Static, so can be accessed directly elsewhere in code via
         // e.g.
         // float myFloat = LongNameGameIntifacePlugin.FloatExample.Value;
         // TODO Change this code or remove the code if not required.
-        public static ConfigEntry<float> FloatExample;
-        public static ConfigEntry<int> IntExample;
-        public static ConfigEntry<KeyboardShortcut> KeyboardShortcutExample;
+        public static ConfigEntry<int> IntGropeToyFunction;
+        public static ConfigEntry<int> IntGropeMultiplier;
+        public static ConfigEntry<float> FloatGropeDuration;
+        public static ConfigEntry<KeyboardShortcut> KeyboardConnectIntiface;
+        public static ConfigEntry<KeyboardShortcut> KeyboardStartIntiface;
+        public static ConfigEntry<KeyboardShortcut> KeyboardTest;
 
         private static readonly Harmony Harmony = new Harmony(MyGUID);
         public static ManualLogSource Log = new ManualLogSource(PluginName);
+        public static SexToysManager stManager;
 
         /// <summary>
         /// Initialise the configuration settings and patch methods
@@ -45,43 +59,53 @@ namespace LongNameGameIntiface
         private void Awake()
         {
 
-            // Float configuration setting example
-            // TODO Change this code or remove the code if not required.
-            FloatExample = Config.Bind("General",    // The section under which the option is shown
-                FloatExampleKey,                            // The key of the configuration option
-                1.0f,                            // The default value
-                new ConfigDescription("Example float configuration setting.",         // Description that appears in Configuration Manager
-                    new AcceptableValueRange<float>(0.0f, 10.0f)));     // Acceptable range, enabled slider and validation in Configuration Manager
-
-            // Int setting example
-            // TODO Change this code or remove the code if not required.
-            IntExample = Config.Bind("General",
-                IntExampleKey,
-                1,
-                new ConfigDescription("Example int configuration setting.",
+            IntGropeToyFunction = Config.Bind("Grope",
+                IntGropeToyFunctionKey,
+                0,
+                new ConfigDescription("Id of toy function",
                     new AcceptableValueRange<int>(0, 10)));
+
+            IntGropeMultiplier = Config.Bind("Grope",
+                IntGropeMultiplierKey,
+                5,
+                new ConfigDescription("Sex Toy Power",
+                    new AcceptableValueRange<int>(0, 20)));
+
+            FloatGropeDuration = Config.Bind("Grope",    // The section under which the option is shown
+                FloatGropeDurationKey,                            // The key of the configuration option
+                    1.0f,                            // The default value
+                    new ConfigDescription("Example float configuration setting.",         // Description that appears in Configuration Manager
+                        new AcceptableValueRange<float>(0.0f, 10.0f)));     // Acceptable range, enabled slider and validation in Configuration Manager
 
             // Keyboard shortcut setting example
             // TODO Change this code or remove the code if not required.
-            KeyboardShortcutExample = Config.Bind("General",
-                KeyboardShortcutExampleKey,
+            KeyboardConnectIntiface = Config.Bind("General",
+                KeyboardConnectIntifaceKey,
                 new KeyboardShortcut(KeyCode.A, KeyCode.LeftControl));
+
+            KeyboardStartIntiface = Config.Bind("General",
+                KeyboardStartIntifaceKey,
+                new KeyboardShortcut(KeyCode.Z, KeyCode.LeftControl));
+
+            KeyboardTest = Config.Bind("General",
+                KeyboardTestKey,
+                new KeyboardShortcut(KeyCode.E, KeyCode.LeftControl));
 
             // Add listeners methods to run if and when settings are changed by the player.
             // TODO Change this code or remove the code if not required.
-            FloatExample.SettingChanged += ConfigSettingChanged;
-            IntExample.SettingChanged += ConfigSettingChanged;
-            KeyboardShortcutExample.SettingChanged += ConfigSettingChanged;
+            IntGropeToyFunction.SettingChanged += ConfigSettingChanged;
+            IntGropeMultiplier.SettingChanged += ConfigSettingChanged;
+            FloatGropeDuration.SettingChanged += ConfigSettingChanged;
+            KeyboardConnectIntiface.SettingChanged += ConfigSettingChanged;
 
             // Apply all of our patches
             Logger.LogInfo($"PluginName: {PluginName}, VersionString: {VersionString} is loading...");
             Harmony.PatchAll();
             Logger.LogInfo($"PluginName: {PluginName}, VersionString: {VersionString} is loaded.");
 
-            // Sets up our static Log, so it can be used elsewhere in code.
-            // .e.g.
-            // LongNameGameIntifacePlugin.Log.LogDebug("Debug Message to BepInEx log file");
+            // Set logger
             Log = Logger;
+
         }
 
         /// <summary>
@@ -91,10 +115,30 @@ namespace LongNameGameIntiface
         // TODO - Add your code here or remove this section if not required.
         private void Update()
         {
-            if (LongNameGameIntifacePlugin.KeyboardShortcutExample.Value.IsDown())
+            if (LongNameGameIntifacePlugin.KeyboardConnectIntiface.Value.IsDown())
             {
                 // Code here to do something on keypress
-                Logger.LogInfo("Keypress detected!");
+                intifaceClient.ConnectIntiface(); //Proceed properly
+                Logger.LogInfo($"Keypress detected!");
+            }
+
+            if (LongNameGameIntifacePlugin.KeyboardTest.Value.IsDown())
+            {
+                Logger.LogInfo(intifaceClient == null);
+                if(intifaceClient != null)
+                {
+
+                    Logger.LogInfo(intifaceClient.sexToyFunctions == null);
+                }
+                Logger.LogInfo($"Test {intifaceClient.sexToyFunctions.Count()}");
+            }
+
+            if (LongNameGameIntifacePlugin.KeyboardStartIntiface.Value.IsDown())
+            {
+                Logger.LogInfo(stManager);
+                stManager = new SexToysManager(intifaceClient, intifaceClient.sexToyFunctions.Cast<SexToyFunction>().ToList());
+                Thread thr = new Thread(stManager.loop);
+                thr.Start();
             }
         }
 
@@ -114,21 +158,21 @@ namespace LongNameGameIntiface
             }
 
             // Example Float Shortcut setting changed handler
-            if (settingChangedEventArgs.ChangedSetting.Definition.Key == FloatExampleKey)
-            {
-                // TODO - Add your code here or remove this section if not required.
-                // Code here to do something with the new value
-            }
+            //if (settingChangedEventArgs.ChangedSetting.Definition.Key == FloatExampleKey)
+            //{
+            //    // TODO - Add your code here or remove this section if not required.
+            //    // Code here to do something with the new value
+            //}
 
             // Example Int Shortcut setting changed handler
-            if (settingChangedEventArgs.ChangedSetting.Definition.Key == IntExampleKey)
+            if (settingChangedEventArgs.ChangedSetting.Definition.Key == IntGropeToyFunctionKey)
             {
                 // TODO - Add your code here or remove this section if not required.
                 // Code here to do something with the new value
             }
 
             // Example Keyboard Shortcut setting changed handler
-            if (settingChangedEventArgs.ChangedSetting.Definition.Key == KeyboardShortcutExampleKey)
+            if (settingChangedEventArgs.ChangedSetting.Definition.Key == KeyboardConnectIntifaceKey)
             {
                 KeyboardShortcut newValue = (KeyboardShortcut)settingChangedEventArgs.ChangedSetting.BoxedValue;
 
@@ -138,13 +182,5 @@ namespace LongNameGameIntiface
         }
     }
 
-    [HarmonyPatch(typeof(GirlsScript), nameof(GirlsScript.ChangeStaminaRecovery))]
-    class Patch
-    {
-        static void Prefix(bool which, EnemiesEnum thisEnemy)
-        {
-            Logger.Loginfo("test");
-        }
-
-    }
+    
 }
