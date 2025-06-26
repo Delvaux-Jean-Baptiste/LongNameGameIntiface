@@ -103,7 +103,7 @@ namespace LongNameGameIntiface
                 DoubleGropeMultiplierKey,
                 0.25,
                 new ConfigDescription("Sex Toy Power",
-                    new AcceptableValueRange<double>(0f, 10f)));
+                    new AcceptableValueRange<double>(0f, 1f)));
 
             FloatGropeDuration = Config.Bind("Grope",    // The section under which the option is shown
                 FloatGropeDurationKey,                            // The key of the configuration option
@@ -122,7 +122,7 @@ namespace LongNameGameIntiface
                 DoubleHitMultiplierKey,
                 0.25,
                 new ConfigDescription("Sex Toy Power",
-                    new AcceptableValueRange<double>(0f, 10f)));
+                    new AcceptableValueRange<double>(0f, 1f)));
 
             FloatHitDuration = Config.Bind("Hit",    // The section under which the option is shown
                 FloatHitDurationKey,                            // The key of the configuration option
@@ -142,7 +142,7 @@ namespace LongNameGameIntiface
                 DoubleSexMultiplierKey,
                 0.25,
                 new ConfigDescription("Sex Toy Power",
-                    new AcceptableValueRange<double>(0f, 10f)));
+                    new AcceptableValueRange<double>(0f, 1f)));
 
             //Capture
             IntCaptureToyFunction = Config.Bind("Capture",
@@ -155,7 +155,7 @@ namespace LongNameGameIntiface
                 DoubleCaptureMultiplierKey,
                 0.25,
                 new ConfigDescription("Sex Toy Power",
-                    new AcceptableValueRange<double>(0f, 10f)));
+                    new AcceptableValueRange<double>(0f, 1f)));
 
             // Keyboard shortcut setting example
             // TODO Change this code or remove the code if not required.
@@ -219,7 +219,7 @@ namespace LongNameGameIntiface
 
             if (LongNameGameIntifacePlugin.KeyboardStartIntiface.Value.IsDown())
             {
-                Logger.LogInfo($"Start detecting");
+                Logger.LogInfo($"Intiface Connection attempt");
                 Logger.LogInfo(stManager);
                 stManager = new SexToysManager(intifaceClient, intifaceClient.sexToyFunctions.Cast<SexToyFunction>().ToList());
                 Thread thr = new Thread(stManager.loop);
