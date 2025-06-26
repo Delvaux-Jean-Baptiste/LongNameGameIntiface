@@ -29,22 +29,55 @@ namespace LongNameGameIntiface
         // Config entry key strings
         // These will appear in the config file created by BepInEx and can also be used
         // by the OnSettingsChange event to determine which setting has changed.
+
+        //Grope
         public static string IntGropeToyFunctionKey = "Grope Sex Toy Function";
-        public static string IntGropeMultiplierKey = "Grope multiplier";
+        public static string DoubleGropeMultiplierKey = "Grope multiplier";
         public static string FloatGropeDurationKey = "Grope Duration (sec)";
+
+        //Hit
+        public static string IntHitToyFunctionKey = "Hit Sex Toy Function";
+        public static string DoubleHitMultiplierKey = "Hit multiplier";
+        public static string FloatHitDurationKey = "Hit Duration (sec)";
+
+        //Sex
+        public static string IntSexToyFunctionKey = "Sex Sex Toy Function";
+        public static string DoubleSexMultiplierKey = "Sex multiplier";
+
+        //Capture
+        public static string IntCaptureToyFunctionKey = "Capture Sex Toy Function";
+        public static string DoubleCaptureMultiplierKey = "Capture multiplier";
+
         public static string KeyboardConnectIntifaceKey = "Connect Intiface";
         public static string KeyboardStartIntifaceKey = "StartFollowingToys";
         public static string KeyboardTestKey = "Test";
+        public static string booldebugLogsKey = "Enable logs debug";
 
         public static IntifaceClient intifaceClient = new IntifaceClient();
 
         // Configuration entries. Static, so can be accessed directly elsewhere in code via
         // e.g.
         // float myFloat = LongNameGameIntifacePlugin.FloatExample.Value;
-        // TODO Change this code or remove the code if not required.
+        
+        //Grope
         public static ConfigEntry<int> IntGropeToyFunction;
-        public static ConfigEntry<int> IntGropeMultiplier;
+        public static ConfigEntry<double> DoubleGropeMultiplier;
         public static ConfigEntry<float> FloatGropeDuration;
+
+        //Hit
+        public static ConfigEntry<int> IntHitToyFunction;
+        public static ConfigEntry<double> DoubleHitMultiplier;
+        public static ConfigEntry<float> FloatHitDuration;
+
+        //Sex
+        public static ConfigEntry<int> IntSexToyFunction;
+        public static ConfigEntry<double> DoubleSexMultiplier;
+
+        //Capture
+        public static ConfigEntry<int> IntCaptureToyFunction;
+        public static ConfigEntry<double> DoubleCaptureMultiplier;
+
+        public static ConfigEntry<bool> booldebugLogs;
         public static ConfigEntry<KeyboardShortcut> KeyboardConnectIntiface;
         public static ConfigEntry<KeyboardShortcut> KeyboardStartIntiface;
         public static ConfigEntry<KeyboardShortcut> KeyboardTest;
@@ -59,23 +92,70 @@ namespace LongNameGameIntiface
         private void Awake()
         {
 
+            //Grope
             IntGropeToyFunction = Config.Bind("Grope",
                 IntGropeToyFunctionKey,
                 0,
                 new ConfigDescription("Id of toy function",
                     new AcceptableValueRange<int>(0, 10)));
 
-            IntGropeMultiplier = Config.Bind("Grope",
-                IntGropeMultiplierKey,
-                5,
+            DoubleGropeMultiplier = Config.Bind("Grope",
+                DoubleGropeMultiplierKey,
+                0.25,
                 new ConfigDescription("Sex Toy Power",
-                    new AcceptableValueRange<int>(0, 20)));
+                    new AcceptableValueRange<double>(0f, 10f)));
 
             FloatGropeDuration = Config.Bind("Grope",    // The section under which the option is shown
                 FloatGropeDurationKey,                            // The key of the configuration option
-                    1.0f,                            // The default value
+                    2.0f,                            // The default value
                     new ConfigDescription("Example float configuration setting.",         // Description that appears in Configuration Manager
                         new AcceptableValueRange<float>(0.0f, 10.0f)));     // Acceptable range, enabled slider and validation in Configuration Manager
+
+            //Hit
+            IntHitToyFunction = Config.Bind("Hit",
+                IntHitToyFunctionKey,
+                0,
+                new ConfigDescription("Id of toy function",
+                    new AcceptableValueRange<int>(0, 10)));
+
+            DoubleHitMultiplier = Config.Bind("Hit",
+                DoubleHitMultiplierKey,
+                0.25,
+                new ConfigDescription("Sex Toy Power",
+                    new AcceptableValueRange<double>(0f, 10f)));
+
+            FloatHitDuration = Config.Bind("Hit",    // The section under which the option is shown
+                FloatHitDurationKey,                            // The key of the configuration option
+                    2.0f,
+                    new ConfigDescription("Example float configuration setting.",         // Description that appears in Configuration Manager
+                        new AcceptableValueRange<float>(0.0f, 10.0f)));     // Acceptable range, enabled slider and validation in Configuration Manager
+
+
+            //Sex
+            IntSexToyFunction = Config.Bind("Sex",
+                IntSexToyFunctionKey,
+                0,
+                new ConfigDescription("Id of toy function",
+                    new AcceptableValueRange<int>(0, 10)));
+
+            DoubleSexMultiplier = Config.Bind("Sex",
+                DoubleSexMultiplierKey,
+                0.25,
+                new ConfigDescription("Sex Toy Power",
+                    new AcceptableValueRange<double>(0f, 10f)));
+
+            //Capture
+            IntCaptureToyFunction = Config.Bind("Capture",
+                IntCaptureToyFunctionKey,
+                0,
+                new ConfigDescription("Id of toy function",
+                    new AcceptableValueRange<int>(0, 10)));
+
+            DoubleCaptureMultiplier = Config.Bind("Capture",
+                DoubleCaptureMultiplierKey,
+                0.25,
+                new ConfigDescription("Sex Toy Power",
+                    new AcceptableValueRange<double>(0f, 10f)));
 
             // Keyboard shortcut setting example
             // TODO Change this code or remove the code if not required.
@@ -91,10 +171,15 @@ namespace LongNameGameIntiface
                 KeyboardTestKey,
                 new KeyboardShortcut(KeyCode.E, KeyCode.LeftControl));
 
+            booldebugLogs = Config.Bind("General",
+                booldebugLogsKey,
+                false,
+                new ConfigDescription("debug logs"));
+
             // Add listeners methods to run if and when settings are changed by the player.
             // TODO Change this code or remove the code if not required.
             IntGropeToyFunction.SettingChanged += ConfigSettingChanged;
-            IntGropeMultiplier.SettingChanged += ConfigSettingChanged;
+            DoubleGropeMultiplier.SettingChanged += ConfigSettingChanged;
             FloatGropeDuration.SettingChanged += ConfigSettingChanged;
             KeyboardConnectIntiface.SettingChanged += ConfigSettingChanged;
 
@@ -117,9 +202,8 @@ namespace LongNameGameIntiface
         {
             if (LongNameGameIntifacePlugin.KeyboardConnectIntiface.Value.IsDown())
             {
-                // Code here to do something on keypress
+                Logger.LogInfo($"Intiface Connection attempt");
                 intifaceClient.ConnectIntiface(); //Proceed properly
-                Logger.LogInfo($"Keypress detected!");
             }
 
             if (LongNameGameIntifacePlugin.KeyboardTest.Value.IsDown())
@@ -135,6 +219,7 @@ namespace LongNameGameIntiface
 
             if (LongNameGameIntifacePlugin.KeyboardStartIntiface.Value.IsDown())
             {
+                Logger.LogInfo($"Start detecting");
                 Logger.LogInfo(stManager);
                 stManager = new SexToysManager(intifaceClient, intifaceClient.sexToyFunctions.Cast<SexToyFunction>().ToList());
                 Thread thr = new Thread(stManager.loop);

@@ -25,23 +25,24 @@ namespace LongNameGameIntiface.WebClient
 
         public async Task<string> ConnectIntiface()
         {
-            LongNameGameIntifacePlugin.Log.LogInfo($"Test 0");
-            var connector = new ButtplugWebsocketConnector(new Uri("ws://127.0.0.1:12345"));
-            try
+
+            if (!client.Connected)
             {
-                LongNameGameIntifacePlugin.Log.LogInfo($"Test 1");
-                await client.ConnectAsync(connector);
-                LongNameGameIntifacePlugin.Log.LogInfo($"Test 2");
+                var connector = new ButtplugWebsocketConnector(new Uri("ws://127.0.0.1:12345"));
+                try
+                {
+                    await client.ConnectAsync(connector);
+                }
+                catch (ButtplugClientConnectorException ex)
+                {
+                    Console.WriteLine(
+                        $"Can't connect, exiting! Message: {ex.InnerException.Message}");
+                    return "Not Connected";
+                }
+                LongNameGameIntifacePlugin.Log.LogInfo("Connected to Intiface");
             }
-            catch (ButtplugClientConnectorException ex)
-            {
-                LongNameGameIntifacePlugin.Log.LogInfo($"Test 3");
-                Console.WriteLine(
-                    $"Can't connect, exiting! Message: {ex.InnerException.Message}");
-                return "Not Connected";
-            }
-            LongNameGameIntifacePlugin.Log.LogInfo($"Test 4");
-            LongNameGameIntifacePlugin.Log.LogInfo("Connected to Intiface");
+
+
             var devices = await scanDevicesIntifaceClient();
 
             List<SexToyFunction> listFunction = new List<SexToyFunction>();
@@ -86,6 +87,10 @@ namespace LongNameGameIntiface.WebClient
 
         }
 
+        public bool isConnected()
+        {
+            return client.Connected;
+        }
 
         public async void TriggerToys()
         {
@@ -120,11 +125,9 @@ namespace LongNameGameIntiface.WebClient
             client.DisconnectAsync();
         }
 
-        public void TriggerSexToy(SexToyFunction stf, double scalar)
+        public async void TriggerSexToy(SexToyFunction stf, double scalar)
         {
-            LongNameGameIntifacePlugin.Log.LogInfo($"stf {stf.name} || scalar {scalar}");
-            stf.device.ScalarAsync(new ScalarCmd.ScalarSubcommand(stf.id, scalar, stf.type));
-            LongNameGameIntifacePlugin.Log.LogInfo($"finish");
+            await stf.device.ScalarAsync(new ScalarCmd.ScalarSubcommand(stf.id, scalar, stf.type));
         }
 
         //public string ConnectSexToys(DataGridView sexToysGrid, DataGridView pistonToysGrid)
